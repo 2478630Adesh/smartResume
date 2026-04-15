@@ -1,0 +1,127 @@
+================================================================
+   SMART RESUME BUILDER & ANALYZER — SETUP GUIDE
+================================================================
+
+STEP 1: PREREQUISITES
+----------------------------------------------------------------
+Before running this project, make sure you have:
+
+  1. Node.js (v18 or above)
+     Download: https://nodejs.org
+
+  2. MongoDB (running locally OR a MongoDB Atlas account)
+     Local: https://www.mongodb.com/try/download/community
+     Atlas: https://www.mongodb.com/atlas (free tier available)
+
+  3. Git (optional, for version control)
+
+To verify Node.js is installed, open terminal/cmd and type:
+     node --version
+     npm --version
+
+
+STEP 2: CREATE THE .env FILE  *** IMPORTANT ***
+----------------------------------------------------------------
+The .env file contains your secret configuration.
+It must be created manually inside the /backend folder.
+
+  1. Go into the backend/ folder
+  2. Create a new file called:  .env  (just ".env", no other name)
+  3. Paste the following content into it:
+
+----- COPY BELOW THIS LINE -----
+
+MONGO_URI=mongodb://localhost:27017/smart_resume_builder
+JWT_SECRET=mySecretKey12345ChangeThis
+PORT=5000
+NODE_ENV=development
+CLIENT_URL=http://localhost:3000
+
+----- COPY ABOVE THIS LINE -----
+
+NOTE: If using MongoDB Atlas instead of local MongoDB, replace
+the MONGO_URI with your Atlas connection string, like:
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/smart_resume_builder
+
+You can also copy the .env.example file and rename it to .env
+
+
+STEP 3: INSTALL DEPENDENCIES
+----------------------------------------------------------------
+Open terminal/cmd in the project ROOT folder (smart-resume-builder/)
+and run these commands one by one:
+
+  npm install
+  cd backend && npm install
+  cd ../frontend && npm install
+  cd ..
+
+OR use the shortcut (if concurrently is installed):
+  npm run install-all
+
+
+STEP 4: START MONGODB
+----------------------------------------------------------------
+If using LOCAL MongoDB:
+  - Windows: MongoDB should auto-start as a service, OR
+    open cmd and run:  mongod
+  - Mac/Linux: run:   sudo mongod
+
+If using ATLAS:
+  - Just make sure your connection string in .env is correct
+  - Make sure your IP is whitelisted in Atlas dashboard
+
+
+STEP 5: RUN THE APPLICATION
+----------------------------------------------------------------
+From the ROOT folder (smart-resume-builder/), run:
+
+  npm run dev
+
+This starts BOTH the backend (port 5000) and frontend (port 3000).
+
+Alternatively, run them separately in two terminals:
+
+  Terminal 1:  cd backend && npm run dev
+  Terminal 2:  cd frontend && npm start
+
+
+STEP 6: OPEN IN BROWSER
+----------------------------------------------------------------
+  Frontend:  http://localhost:3000
+  Backend:   http://localhost:5000/api/health
+
+
+STEP 7: TESTING THE APP
+----------------------------------------------------------------
+  1. Open http://localhost:3000
+  2. Click "Get Started" to register
+  3. Create a Job Seeker account (role: User)
+  4. Complete your Profile (add skills, education, etc.)
+  5. Go to Resume Builder to generate and preview your resume
+  6. Try the JD Analyzer — paste a job description
+
+  To test HR features:
+  1. Register a NEW account with role: HR / Recruiter
+  2. Post a job from HR Dashboard
+  3. Switch to user account and apply for the job
+  4. Switch back to HR and check the leaderboard
+
+
+TROUBLESHOOTING
+----------------------------------------------------------------
+Error: "Cannot connect to MongoDB"
+  → Make sure MongoDB is running (mongod command)
+  → Check your MONGO_URI in .env file
+
+Error: "Module not found"
+  → Run npm install in BOTH backend/ and frontend/ folders
+
+Error: "Port 5000 already in use"
+  → Change PORT=5001 in .env and update proxy in frontend/package.json
+
+Error: ".env file not found"
+  → Create it manually as shown in Step 2 above
+  → Make sure the file is named exactly ".env" (not ".env.txt")
+
+================================================================
