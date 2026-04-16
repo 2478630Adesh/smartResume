@@ -47,6 +47,9 @@ const calculateATSScore = (resumeSkills, jobSkills, resumeText = '', jobDescript
       : 0
   );
 
+  // Generate verdict - Is this resume good for this job?
+  const verdict = generateVerdict(totalScore, matchPercentage, matchingSkills, missingSkills, normalizedJobSkills);
+
   return {
     atsScore: Math.min(totalScore, 100),
     matchPercentage,
@@ -58,7 +61,89 @@ const calculateATSScore = (resumeSkills, jobSkills, resumeText = '', jobDescript
       structureScore: Math.round(structureScore),
       experienceRelevance: Math.round(experienceScore)
     },
+    verdict,
     suggestions: generateSuggestions(missingSkills, structureScore, keywordScore)
+  };
+};
+
+const generateVerdict = (atsScore, matchPercentage, matchingSkills, missingSkills, jobSkills) => {
+  const totalRequired = jobSkills.length;
+  const matched = matchingSkills.length;
+  const missing = missingSkills.length;
+
+  let rating, label, color, emoji, summary, recommendation, canApply;
+
+  if (atsScore >= 80 && matchPercentage >= 70) {
+    rating = 'excellent';
+    label = 'Excellent Fit';
+    color = '#06d6a0';
+    emoji = '🟢';
+    canApply = true;
+    summary = `Your resume is an excellent match for this job! You have ${matched} out of ${totalRequired} required skills.`;
+    recommendation = 'Strongly recommended to apply. Your profile closely matches what the employer is looking for. You have a high chance of passing the ATS screening.';
+  } else if (atsScore >= 60 && matchPercentage >= 50) {
+    rating = 'good';
+    label = 'Good Fit';
+    color = '#22d3ee';
+    emoji = '🔵';
+    canApply = true;
+    summary = `Your resume is a good match! You have ${matched} out of ${totalRequired} required skills, with ${missing} skill(s) to improve.`;
+    recommendation = 'Recommended to apply. You meet most requirements. Consider highlighting your matching skills prominently and address the skill gaps in your cover letter.';
+  } else if (atsScore >= 40 && matchPercentage >= 30) {
+    rating = 'average';
+    label = 'Average Fit';
+    color = '#f59e0b';
+    emoji = '🟡';
+    canApply = true;
+    summary = `Your resume partially matches this job. You have ${matched} out of ${totalRequired} required skills, but ${missing} important skill(s) are missing.`;
+    recommendation = 'You can apply, but your chances are moderate. Before applying, try to add the missing skills to your resume if you have any experience with them. Consider upskilling in the gap areas.';
+  } else {
+    rating = 'poor';
+    label = 'Not a Good Fit';
+    color = '#ef4444';
+    emoji = '🔴';
+    canApply = false;
+    summary = `Your resume does not match well with this job. Only ${matched} out of ${totalRequired} required skills match. ${missing} critical skills are missing.`;
+    recommendation = 'Not recommended to apply right now. There is a significant gap between your current skills and the job requirements. Focus on learning the missing skills first, then apply.';
+  }
+
+  // Skill-by-skill verdict
+  const skillVerdict = [];
+  matchingSkills.forEach(skill => {
+    skillVerdict.push({ skill, status: 'match', message: `✅ ${skill} — You have this skill` });
+  });
+  missingSkills.forEach(skill => {
+    skillVerdict.push({ skill, status: 'missing', message: `❌ ${skill} — Missing from your resume` });
+  });
+
+  // Action items
+  const actionItems = [];
+  if (missing > 0) {
+    actionItems.push(`Learn these ${missing} missing skills: ${missingSkills.join(', ')}`);
+  }
+  if (atsScore < 70) {
+    actionItems.push('Add more keywords from the job description to your resume');
+  }
+  if (matchPercentage < 50) {
+    actionItems.push('Consider taking online courses on platforms like Coursera, Udemy, or freeCodeCamp');
+  }
+  if (matched > 0) {
+    actionItems.push(`Highlight your strong skills (${matchingSkills.join(', ')}) at the top of your resume`);
+  }
+  actionItems.push('Tailor your resume specifically for this job before applying');
+  actionItems.push('Use the exact skill names from the job description (e.g., "React.js" not just "React")');
+
+  return {
+    rating,
+    label,
+    color,
+    emoji,
+    canApply,
+    summary,
+    recommendation,
+    skillVerdict,
+    actionItems,
+    quickSummary: `${emoji} ${label} — ATS Score: ${Math.min(Math.round(atsScore), 100)}% | Skills Match: ${matched}/${totalRequired} (${matchPercentage}%)`
   };
 };
 

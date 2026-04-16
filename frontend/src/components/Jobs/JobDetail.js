@@ -90,6 +90,43 @@ const JobDetail = () => {
             <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16 }}>Skill Gap Analysis</h3>
             {skillGap ? (
               <div>
+                {/* VERDICT BANNER */}
+                {skillGap.verdict && (
+                  <div style={{
+                    background: `${skillGap.verdict.color}15`,
+                    border: `1px solid ${skillGap.verdict.color}40`,
+                    borderRadius: 'var(--radius-md)',
+                    padding: '14px 16px',
+                    marginBottom: 16
+                  }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: skillGap.verdict.color, marginBottom: 4 }}>
+                      {skillGap.verdict.emoji} {skillGap.verdict.label}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 8 }}>
+                      {skillGap.verdict.summary}
+                    </div>
+                    <div style={{
+                      fontSize: 12, lineHeight: 1.6,
+                      padding: '8px 12px',
+                      background: 'var(--bg-input)',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'var(--text-secondary)'
+                    }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>Recommendation: </strong>
+                      {skillGap.verdict.recommendation}
+                    </div>
+                    {skillGap.verdict.canApply ? (
+                      <div style={{ marginTop: 8, fontSize: 11, color: 'var(--accent-secondary)', fontWeight: 600 }}>
+                        ✅ You can apply for this job
+                      </div>
+                    ) : (
+                      <div style={{ marginTop: 8, fontSize: 11, color: 'var(--accent-danger)', fontWeight: 600 }}>
+                        ⚠️ Consider upskilling before applying
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <ScoreCircle score={skillGap.matchPercentage} size={100} label="Match" />
                 <div style={{ marginTop: 16 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-secondary)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}><FiCheckCircle /> Matching ({skillGap.matchingSkills.length})</div>
@@ -99,6 +136,18 @@ const JobDetail = () => {
                   <div className="divider" />
                   <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Breakdown</div>
                   {Object.entries(skillGap.breakdown || {}).map(([key, val]) => (<div key={key} style={{ marginBottom: 8 }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}><span style={{ color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1')}</span><span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{val}%</span></div><div className="progress-bar"><div className="progress-fill purple" style={{ width: `${val}%` }} /></div></div>))}
+
+                  {/* ACTION ITEMS */}
+                  {skillGap.verdict?.actionItems?.length > 0 && (
+                    <>
+                      <div className="divider" />
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Action items to improve</div>
+                      {skillGap.verdict.actionItems.map((item, i) => (
+                        <p key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6, paddingLeft: 12, borderLeft: '2px solid var(--accent-primary)' }}>{item}</p>
+                      ))}
+                    </>
+                  )}
+
                   {skillGap.suggestions?.length > 0 && (<><div className="divider" /><div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Suggestions</div>{skillGap.suggestions.map((s, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6, paddingLeft: 12, borderLeft: '2px solid var(--accent-primary)' }}>{s}</p>)}</>)}
                 </div>
               </div>
