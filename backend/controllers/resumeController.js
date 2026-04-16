@@ -2,33 +2,46 @@ const User = require('../models/User');
 const path = require('path');
 const fs = require('fs');
 
+// Try to load optional parsers
+let pdfParse = null;
+let mammoth = null;
+try { pdfParse = require('pdf-parse'); } catch(e) { console.log('pdf-parse not installed, PDF skill extraction disabled'); }
+try { mammoth = require('mammoth'); } catch(e) { console.log('mammoth not installed, DOCX skill extraction disabled'); }
+
 // @desc    Upload resume
 // @route   POST /api/resume/upload
 const uploadResume = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'Please upload a file' });
+      return res.status(400).json({ message: 'Please upload a file. Only PDF and DOCX files are allowed.' });
     }
 
+    console.log('📤 File uploaded:', req.file.originalname, '| Type:', req.file.mimetype, '| Size:', req.file.size);
+
     const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
     
-    // Parse skills from filename/type (basic extraction)
     let parsedSkills = [];
     
-    // Try to extract text and skills from uploaded file
+    // Try to extract skills from uploaded file
     try {
-      if (req.file.mimetype === 'application/pdf') {
-        const pdfParse = require('pdf-parse');
+      if (req.file.mimetype === 'application/pdf' && pdfParse) {
         const dataBuffer = fs.readFileSync(req.file.path);
         const pdfData = await pdfParse(dataBuffer);
         parsedSkills = extractSkillsFromText(pdfData.text);
-      } else if (req.file.mimetype.includes('wordprocessingml')) {
-        const mammoth = require('mammoth');
+        console.log('📄 PDF parsed, skills found:', parsedSkills.length);
+      } else if (req.file.mimetype.includes('wordprocessingml') && mammoth) {
         const result = await mammoth.extractRawText({ path: req.file.path });
         parsedSkills = extractSkillsFromText(result.value);
+        console.log('📄 DOCX parsed, skills found:', parsedSkills.length);
+      } else {
+        console.log('⚠️ Skipping file parsing (parser not available or unsupported type)');
       }
     } catch (parseError) {
-      console.log('File parsing error (non-fatal):', parseError.message);
+      console.log('⚠️ File parsing error (non-fatal):', parseError.message);
+      // Continue without parsed skills - upload still succeeds
     }
 
     const resumeData = {
@@ -43,9 +56,12 @@ const uploadResume = async (req, res) => {
     await user.save();
 
     const savedResume = user.resumes[user.resumes.length - 1];
+    console.log('✅ Resume saved to DB:', savedResume.originalName);
+    
     res.status(201).json({ message: 'Resume uploaded successfully', resume: savedResume });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('❌ Upload error:', error.message);
+    res.status(500).json({ message: 'Failed to upload resume', error: error.message });
   }
 };
 
